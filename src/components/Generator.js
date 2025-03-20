@@ -213,7 +213,8 @@ const Generator = () => {
                     ${isDragging ? 'opacity-50' : 'opacity-100'}`}
                 style={{
                     width: '150px',
-                    boxShadow: '0 8px 25px rgba(0, 0, 0, 0.4)'
+                    boxShadow: '0 8px 25px rgba(0, 0, 0, 0.4)',
+                    willChange: 'opacity, transform'
                 }}
             >
                 <img
