@@ -3,6 +3,7 @@ import { useDrag, useDrop } from 'react-dnd';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import { useRouter } from 'next/router';
 import Layout from './Layout';
+import Image from 'next/image';
 
 // TODO：
 // 1. 修改关于页面
@@ -32,7 +33,7 @@ const Generator = () => {
     const [gridRows, setGridRows] = useState(2);
     const [gridCols, setGridCols] = useState(3);
     const [gridOffsetX, setGridOffsetX] = useState(0);
-    const [gridOffsetY, setGridOffsetY] = useState(100);
+    const [gridOffsetY, setGridOffsetY] = useState(0);
 
     // 动态文字状态
     const [displayText, setDisplayText] = useState("");
@@ -52,7 +53,7 @@ const Generator = () => {
         const timer = setTimeout(() => {
             setShowWelcome(false);
             setShowSearch(true);
-        }, 750);
+        }, 1000);
         return () => clearTimeout(timer);
     }, []);
 
@@ -217,10 +218,12 @@ const Generator = () => {
                     willChange: 'opacity, transform'
                 }}
             >
-                <img
+                <Image
                     src={album.image}
                     alt={album.name}
                     className="w-full h-full object-cover"
+                    width={150}
+                    height={150}
                 />
                 <div className="absolute inset-0 bg-white/30 backdrop-blur-md opacity-0 
                     hover:opacity-100 transition-opacity duration-500
@@ -252,10 +255,12 @@ const Generator = () => {
                         {placedAlbums[key] && (
                             <div className="w-full h-full cursor-move"
                                 style={{ boxShadow: '0 8px 25px rgba(0, 0, 0, 0.4)' }}>
-                                <img
+                                <Image
                                     src={placedAlbums[key].image}
                                     alt={placedAlbums[key].name}
                                     className="w-full h-full object-cover"
+                                    width={150}
+                                    height={150}
                                 />
                             </div>
                         )}
@@ -505,7 +510,7 @@ const Generator = () => {
                                     <input
                                         type="range"
                                         min="-200"
-                                        max="400"
+                                        max="200"
                                         step="5"
                                         value={gridOffsetY}
                                         onChange={(e) => {

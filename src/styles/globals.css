@@ -9,9 +9,6 @@ body {
   overflow: hidden;
 }
 
-p {
-  font-family: 'Courier New', Courier, monospace;
-}
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }

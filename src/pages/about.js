@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
+import Image from 'next/image';
 
 const About = () => {
   const [mounted, setMounted] = useState(false);
@@ -12,30 +13,48 @@ const About = () => {
   return (
     <Layout>
       <div className={`max-w-4xl mx-auto px-4 py-8 transition-opacity duration-500 ease-in-out
-                      ${mounted ? 'opacity-100' : 'opacity-0'}`}>
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          {/* 头部区域 */}
-            <div className="absolute -bottom-12 left-8">
-              <div className="w-24 h-24 rounded-full border-4 border-white bg-gray-200 flex items-center justify-center">
-                <span className="text-gray-500 text-lg">image</span>
-              </div>
-            </div>
+                      ${mounted ? 'opacity-100' : 'opacity-0'} flex`}>
 
-          {/* 内容区域 */}
-          <div className="pt-16 px-8 pb-8">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Album Wall Generator</h2>
-
-            {/* 项目介绍 */}
-            <div className="space-y-6">
-              <section>
-                <h3 className="text-xl font-semibold text-gray-800 mb-3">项目介绍</h3>
-                <p className="text-gray-600 leading-relaxed">
-                  This is an Album Wall Generator, you can use it to generate a album wall.
-                </p>
-              </section>
-            </div>
+        {/* 左侧个人信息部分 */}
+        <div className="w-1/2 pr-6 border-r border-gray-300">
+          <div className="flex flex-col items-center">
+            <Image
+              src="/avatar.jpeg"
+              alt="个人图像"
+              className="w-56 h-56 rounded-lg shadow-lg mb-4"
+              width={250}
+              height={250}
+            />
+            <p className="text-gray-600 leading-relaxed mb-4 text-lg">
+              HANDLED WITH LOVE BY ME.
+            </p>
+            <a href="https://blog.perfsky.online" className="text-blue-600 hover:underline text-lg">
+              博客
+            </a>
           </div>
         </div>
+
+        {/* 右侧项目描述部分 */}
+        <div className="w-1/2 pl-6">
+          <h2 className="text-4xl font-bold text-gray-900 mb-4">Album Wall Generator</h2>
+          <div className="space-y-6">
+            <section>
+              <p className="text-gray-600 leading-relaxed text-lg">
+                一个调用Spotify API并生成可自定义的照片墙的demo网站。
+              </p>
+            </section>
+            <section>
+              <h3 className="text-xl font-semibold text-gray-800 mb-3">TODO</h3>
+              <ol className="list-disc list-inside text-gray-600 text-lg">
+                <li>增加放置区域大小调整和背景自定义</li>
+                <li>增加导出功能</li>
+                <li>放到wallpaper engine中</li>
+                <li>增加Spotify API的调用</li>
+              </ol>
+            </section>
+          </div>
+        </div>
+
       </div>
     </Layout>
   );
