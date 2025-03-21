@@ -5,13 +5,6 @@ import { useRouter } from 'next/router';
 import Layout from './Layout';
 import Image from 'next/image';
 
-// TODO：
-// 1. 修改关于页面
-// 2. 增加导出功能
-// 3. 增加设置页面
-// 4. 增加背景自定义
-// 5. 增加放置区域大小调整
-
 const Generator = () => {
     const router = useRouter();
 
@@ -22,6 +15,33 @@ const Generator = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [showGrid, setShowGrid] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
+    const [showBgSettings, setShowBgSettings] = useState(false);
+
+    // 背景设置
+    const [selectedBg, setSelectedBg] = useState('grid');
+    const [customBgUrl, setCustomBgUrl] = useState('');
+    const [customBgOpacity, setCustomBgOpacity] = useState(1);
+
+    const backgroundOptions = {
+        grid: {
+            name: '简单网格',
+            style: `
+                linear-gradient(to right, rgba(160, 210, 235, 0.5) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(160, 210, 235, 0.5) 1px, transparent 1px)
+            `,
+            size: '50px 50px'
+        },
+        preset1: {
+            name: '墙壁',
+            style: `url("https://s3.bmp.ovh/imgs/2025/03/21/02e8ec8dfc2b9211.jpg")`,
+            size: 'cover'
+        },
+        preset2: {
+            name: '家居',
+            style: `url("https://s3.bmp.ovh/imgs/2025/03/21/78e07fcd776e8a76.jpg")`,
+            size: 'cover'
+        }
+    };
 
     // API
     const [token, setToken] = useState("");
@@ -33,7 +53,8 @@ const Generator = () => {
     const [gridRows, setGridRows] = useState(2);
     const [gridCols, setGridCols] = useState(3);
     const [gridOffsetX, setGridOffsetX] = useState(0);
-    const [gridOffsetY, setGridOffsetY] = useState(0);
+    const [gridOffsetY, setGridOffsetY] = useState(100);
+    const [albumSize, setAlbumSize] = useState(150);
 
     // 动态文字状态
     const [displayText, setDisplayText] = useState("");
@@ -168,9 +189,14 @@ const Generator = () => {
         return (
             <div
                 ref={drop}
-                className={`w-[150px] h-[150px] border-2 border-dashed 
-                    ${isOver ? 'border-green-500 bg-green-50' : 'border-gray-400'}
-                    ${children ? 'border-none' : ''}`}
+                className={`border-2 border-dashed relative
+                    ${isOver ? 'border-green-500 bg-green-50/30' : 'border-gray-400/50'}
+                    ${children ? 'border-none' : ''}
+                    transition-all duration-200 ease-out`}
+                style={{
+                    width: `${albumSize}px`,
+                    height: `${albumSize}px`
+                }}
             >
                 {children}
             </div>
@@ -225,15 +251,16 @@ const Generator = () => {
                     width={150}
                     height={150}
                 />
-                <div className="absolute inset-0 bg-white/30 backdrop-blur-md opacity-0 
-                    hover:opacity-100 transition-opacity duration-500
+                {/* BUG */}
+                {/* <div className="absolute inset-0 bg-white/30 backdrop-blur-md 
+                opacity-0 hover:opacity-100 transition-opacity duration-500
                     flex items-center justify-center p-2">
                     <p className="text-gray-900 text-center text-sm font-bold">
                         {album.name.length > 25 ? album.name.substring(0, 25) + '...' : album.name}
                         <br />
                         <span className="text-xs text-gray-600">{album.artist}</span>
                     </p>
-                </div>
+                </div> */}
             </div>
         );
     };
@@ -259,8 +286,8 @@ const Generator = () => {
                                     src={placedAlbums[key].image}
                                     alt={placedAlbums[key].name}
                                     className="w-full h-full object-cover"
-                                    width={150}
-                                    height={150}
+                                    width={albumSize}
+                                    height={albumSize}
                                 />
                             </div>
                         )}
@@ -274,6 +301,19 @@ const Generator = () => {
             );
         }
         return grid;
+    };
+
+    // 上传背景图
+    const handleBgUpload = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setCustomBgUrl(reader.result);
+                setSelectedBg('custom');
+            };
+            reader.readAsDataURL(file);
+        }
     };
 
     return (
@@ -343,41 +383,33 @@ const Generator = () => {
                     </p>
                 </div>
 
-                {/* TODO: 背景自定义 */}
-                {/* 背景 */}
+                {/* 修改背景渲染部分 */}
                 {albums.length > 0 && !isLoading && (
-                    <div className={`fixed inset-0 transition-opacity duration-300 ease-in-out
+                    <div className={`fixed inset-0 transition-opacity duration-300 ease-in-out object-contain
                         ${showGrid ? 'opacity-100' : 'opacity-0'}`}
                         style={{
-                            background: `
-                 linear-gradient(to right, rgba(160, 210, 235, 0.5) 1px, transparent 1px),
-                 linear-gradient(to bottom, rgba(160, 210, 235, 0.5) 1px, transparent 1px),
-                 repeating-linear-gradient(
-                   to right,
-                   transparent,
-                   transparent 49px,
-                   rgba(160, 210, 235, 0.5) 50px
-                 ),
-                 repeating-linear-gradient(
-                   to bottom,
-                   transparent,
-                   transparent 49px,
-                   rgba(160, 210, 235, 0.5) 50px
-                 )
-               `,
-                            backgroundSize: '50px 50px',
-                            zIndex: 0
+                            background: selectedBg === 'custom'
+                                ? `url(${customBgUrl})`
+                                : backgroundOptions[selectedBg].style,
+                            backgroundSize: selectedBg === 'custom' || selectedBg.includes('preset')
+                                ? 'cover'
+                                : backgroundOptions[selectedBg].size, opacity: customBgOpacity,
+                            zIndex: 1,
+                            backgroundRepeat: selectedBg.includes('preset') || selectedBg === 'custom' ? 'no-repeat' : 'repeat',
+                            backgroundPosition: 'center',
+                            width: '100vw',
+                            height:'100vh'
                         }}
                     />
                 )}
 
                 {/* 专辑放置区域 */}
                 {albums.length > 0 && !isLoading && (
-                    <div className={`flex-1 p-8 transition-all duration-300 ease-in-out relative
+                    <div className={`flex-1 p-8 transition-all relative
                         ${showGrid ? 'opacity-100' : 'opacity-0'}`}
                         style={{
                             transform: `translate(${gridOffsetX}px, ${gridOffsetY}px)`,
-                            zIndex: 1
+                            zIndex: 10
                         }}>
                         <div className="flex flex-col gap-4 items-center">
                             {generateGrid()}
@@ -385,11 +417,12 @@ const Generator = () => {
                     </div>
                 )}
 
+                {/* 底部专辑列表 */}
                 {albums.length > 0 && (
                     <div className={`fixed bottom-0 left-0 right-0 bg-transparent 
                         transition-all duration-500 ease-in-out
                         ${showGrid ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-full'}`}
-                        style={{ zIndex: 2 }}>
+                        style={{ zIndex: 20 }}>
                         <div className="max-w-[1800px] mx-auto">
                             <div className="overflow-x-auto scrollbar-hide">
                                 <div className="flex gap-4 py-8 pl-4 pr-4">
@@ -408,8 +441,9 @@ const Generator = () => {
 
                 {/* 重置按钮 */}
                 {albums.length > 0 && !isLoading && (
-                    <div className={`fixed bottom-52 right-20 z-10 transition-opacity duration-300 ease-in-out
-                        ${showGrid ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                    <div className={`fixed bottom-52 right-4 transition-opacity duration-300 ease-in-out
+                        ${showGrid ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                        style={{ zIndex: 30 }}>
                         <button
                             onClick={handleReset}
                             className="px-5 py-4 rounded-full bg-green-500 text-white font-medium
@@ -423,10 +457,14 @@ const Generator = () => {
 
                 {/* 设置按钮 */}
                 {albums.length > 0 && !isLoading && (
-                    <div className={`fixed bottom-52 right-4 z-10 transition-opacity duration-300 ease-in-out
-                        ${showGrid ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                    <div className={`fixed bottom-52 right-20 transition-opacity duration-300 ease-in-out
+                        ${showGrid ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                        style={{ zIndex: 30 }}>
                         <button
-                            onClick={() => setShowSettings(!showSettings)}
+                            onClick={() => {
+                                setShowSettings(!showSettings)
+                                setShowBgSettings(false)
+                            }}
                             className="px-5 py-4 rounded-full bg-green-500 text-white font-medium
                      shadow-lg hover:shadow-xl hover:bg-green-600 
                      transition-all duration-300 ease-in-out active:scale-90"
@@ -436,12 +474,103 @@ const Generator = () => {
                     </div>
                 )}
 
-                {/* TODO: 增加放置区域大小调整 */}
+                {/* 背景设置按钮 */}
+                {albums.length > 0 && !isLoading && (
+                    <div className={`fixed bottom-52 right-36 transition-opacity duration-300 ease-in-out
+                        ${showGrid ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                        style={{ zIndex: 30 }}>
+                        <button
+                            onClick={() => {
+                                setShowBgSettings(!showBgSettings)
+                                setShowSettings(false)
+                            }}
+                            className="px-5 py-4 rounded-full bg-green-500 text-white font-medium
+                                shadow-lg hover:shadow-xl hover:bg-green-600 
+                                transition-all duration-300 ease-in-out active:scale-90"
+                        >
+                            <i className="fas fa-image"></i>
+                        </button>
+                    </div>
+                )}
+
+                {/* 背景设置面板 */}
+                {showBgSettings && (
+                    <div className={`fixed bottom-72 right-36 bg-white rounded-lg shadow-xl p-6 w-80
+                        transition-opacity duration-300 ease-in-out
+                        ${showBgSettings ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                        style={{ zIndex: 40 }}>
+                        <h3 className="text-lg font-bold mb-4">背景设置</h3>
+                        <div className="space-y-4">
+                            <div className="grid grid-cols-2 gap-2">
+                                {Object.entries(backgroundOptions).map(([key, bg]) => (
+                                    <button
+                                        key={key}
+                                        onClick={() => setSelectedBg(key)}
+                                        className={`p-2 rounded border transition-all duration-200 relative overflow-hidden
+                                            ${selectedBg === key
+                                                ? 'border-green-500 bg-green-50'
+                                                : 'border-gray-200 hover:border-green-300'}`}
+                                        style={{
+                                            height: '60px',
+                                            background: key.includes('preset') ? bg.style : undefined,
+                                            backgroundSize: 'cover',
+                                            backgroundPosition: 'center'
+                                        }}
+                                    >
+                                        <div className={`absolute inset-0 flex items-center justify-center
+                                            ${key.includes('preset') ? 'bg-black/30 text-white' : ''}`}>
+                                            {bg.name}
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    自定义背景
+                                </label>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleBgUpload}
+                                    className="w-full text-sm text-gray-500 file:mr-4 file:py-2 
+                                        file:px-4 file:rounded-full file:border-0
+                                        file:text-sm file:font-semibold file:bg-green-50 
+                                        file:text-green-700 hover:file:bg-green-100"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    背景透明度: {Math.round(customBgOpacity * 100)}%
+                                </label>
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max="100"
+                                    value={customBgOpacity * 100}
+                                    onChange={(e) => setCustomBgOpacity(parseInt(e.target.value) / 100)}
+                                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer
+                                        accent-green-500 hover:accent-green-600"
+                                />
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => setShowBgSettings(false)}
+                            className="mt-4 w-full px-4 py-2 bg-green-500 text-white rounded-lg
+                                hover:bg-green-600 transition-colors duration-300"
+                        >
+                            关闭
+                        </button>
+                    </div>
+                )}
+
                 {/* 设置面板 */}
                 {showSettings && (
-                    <div className={`fixed bottom-72 right-4 bg-white rounded-lg shadow-xl p-6 z-50 w-80
+                    <div className={`fixed bottom-72 right-4 bg-white rounded-lg shadow-xl p-6 w-80
                         transition-opacity duration-300 ease-in-out
-                        ${showSettings ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                        ${showSettings ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                        style={{ zIndex: 40 }}>
                         <h3 className="text-lg font-bold mb-4">网格设置</h3>
                         <div className="space-y-4">
                             <div>
@@ -484,7 +613,7 @@ const Generator = () => {
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    水平偏移 (px): {gridOffsetX}
+                                    水平偏移: {gridOffsetX} px
                                 </label>
                                 <div className="flex items-center gap-2">
                                     <input
@@ -504,13 +633,13 @@ const Generator = () => {
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    垂直偏移 (px): {gridOffsetY}
+                                    垂直偏移: {gridOffsetY} px
                                 </label>
                                 <div className="flex items-center gap-2">
                                     <input
                                         type="range"
-                                        min="-200"
-                                        max="200"
+                                        min="-100"
+                                        max="300"
                                         step="5"
                                         value={gridOffsetY}
                                         onChange={(e) => {
@@ -519,6 +648,21 @@ const Generator = () => {
                                         }}
                                         className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer
                                     accent-green-500 hover:accent-green-600"
+                                    />
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">专辑大小: {albumSize} px</label>
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="range"
+                                        min="100"
+                                        max="200"
+                                        step="10"
+                                        value={albumSize}
+                                        onChange={(e) => setAlbumSize(parseInt(e.target.value))}
+                                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer
+                                            accent-green-500 hover:accent-green-600"
                                     />
                                 </div>
                             </div>
